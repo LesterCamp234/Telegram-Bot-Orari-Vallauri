@@ -443,7 +443,7 @@ def ottengo_dati(doc):
 
     doc.close()
 
-    salvo_json(orario_b)
+    salvo_json('A')
 
 
 def salvo_json(orario_b):
