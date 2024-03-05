@@ -53,7 +53,7 @@ enum Command {
     #[command(description = "Cerca una classe e mostro l'orario di oggi.")]
     Cerca(String),
     #[command(description = "Cerca una classe e mostra l'orario di un determinato giorno.")]
-    GiornoSpecifico(),
+    GiornoSpecifico,
 }
 
 async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
@@ -73,7 +73,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
             bot.send_message(msg.chat.id, ris).await?
 
         }
-        Command::GiornoSpecifico() => {
+        Command::GiornoSpecifico => {
             bot.send_message(msg.chat.id, "TODO").await?
         }
     };
