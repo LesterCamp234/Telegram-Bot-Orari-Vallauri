@@ -23,3 +23,5 @@ py settimane.py path_del_pdf_delle_settimane.pdf
 ```
 
 Bisogna usare per forza quello che mostra le settimane B delle prime
+
+[**Tag del bot**](https://t.me/Orari_Vallauri_bot)
