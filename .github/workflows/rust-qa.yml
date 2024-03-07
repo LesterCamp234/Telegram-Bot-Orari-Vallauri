@@ -34,7 +34,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check --edition 2021
+          args: --all -- --check
 
   clippy:
     name: Clippy
@@ -49,5 +49,5 @@ jobs:
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features --allow-dirty --allow-staged
+          args: --all-features
           name: Clippy Output
