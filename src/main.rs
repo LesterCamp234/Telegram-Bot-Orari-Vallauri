@@ -8,7 +8,7 @@ use std::sync::{Mutex, MutexGuard};
 use teloxide::{prelude::*, utils::command::BotCommands};
 use time::OffsetDateTime;
 
-// My beloved global variables <3
+// Le fantastiche variabili globali <3
 lazy_static! {
     static ref CLASSI: Mutex<Vec<String>> = Mutex::new(vec![]);
     static ref JSON_A: Result<Value, Box<dyn Error + Send + Sync>> =
@@ -68,7 +68,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
             let elenco: Vec<_> = ris.split('\n').collect();
 
             if elenco.len() > 1 {
-                for testo in elenco.iter().take(elenco.len() -2 ) {
+                for testo in elenco.iter().take(elenco.len() - 2) {
                     bot.send_message(msg.chat.id, testo.to_string()).await?;
                 }
                 ris = elenco[elenco.len() - 2].to_string();
@@ -134,18 +134,17 @@ fn stampo_classe(pos: usize, classi: MutexGuard<'_, Vec<String>>) -> String {
         }
     }
 
-
-
     if oggi == 6 {
         oggi = 0;
         tabella += "Dato che è domenica, ecco l'orario di lunedì \n";
     }
 
-    let orario= if tipo_settimana == "0" || (tipo_settimana == "2" && classi[pos].find('1').is_some()) {
-        &JSON_A.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
-    } else {
-        &JSON_B.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
-    };
+    let orario =
+        if tipo_settimana == "0" || (tipo_settimana == "2" && classi[pos].find('1').is_some()) {
+            &JSON_A.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
+        } else {
+            &JSON_B.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
+        };
 
     // Controlla se l'orario è vuoto, grazie 3A AFM per esistere
     if !orario[layout[0]].as_array().unwrap().is_empty() {
