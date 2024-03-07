@@ -8,7 +8,7 @@ use std::sync::{Mutex, MutexGuard};
 use teloxide::{prelude::*, utils::command::BotCommands};
 use time::OffsetDateTime;
 
-// Le fantastiche variabili globali <3
+// My beloved global variables <3
 lazy_static! {
     static ref CLASSI: Mutex<Vec<String>> = Mutex::new(vec![]);
     static ref JSON_A: Result<Value, Box<dyn Error + Send + Sync>> =
@@ -65,11 +65,11 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
         }
         Command::Cerca(classe) => {
             let mut ris = cerco_la_classe(classe);
-            let elenco: Vec<_> = ris.split("\n").collect();
+            let elenco: Vec<_> = ris.split('\n').collect();
 
             if elenco.len() > 1 {
-                for i in 0..elenco.len() - 2 {
-                    bot.send_message(msg.chat.id, elenco[i]).await?;
+                for testo in elenco.iter().take(elenco.len() -2 ) {
+                    bot.send_message(msg.chat.id, testo.to_string()).await?;
                 }
                 ris = elenco[elenco.len() - 2].to_string();
             }
@@ -92,7 +92,7 @@ fn cerco_la_classe(mut classe: String) -> String {
     return if regex.is_match(&classe) {
         regex = Regex::new(r"(?m)\s+").unwrap();
 
-        classe = regex.replace_all(&*classe, "").to_string();
+        classe = regex.replace_all(&classe, "").to_string();
 
         match classi.iter().position(|x| x == &*classe) {
             Some(i) => stampo_classe(i, classi),
@@ -106,8 +106,8 @@ fn cerco_la_classe(mut classe: String) -> String {
 fn stampo_classe(pos: usize, classi: MutexGuard<'_, Vec<String>>) -> String {
     let mut tabella = String::new();
     let tab_settimane = SETTIMANE.lock().unwrap();
-    let giorni = vec!["lunedi", "martedi", "mercoledi", "giovedi", "venerdi"];
-    let layout = vec!["materie", "professori", "aule"];
+    let giorni = ["lunedi", "martedi", "mercoledi", "giovedi", "venerdi"];
+    let layout = ["materie", "professori", "aule"];
     let mut tipo_settimana = String::new();
 
     let giorno = OffsetDateTime::now_utc().day();
@@ -122,7 +122,7 @@ fn stampo_classe(pos: usize, classi: MutexGuard<'_, Vec<String>>) -> String {
     let mut i: usize = 0;
 
     while !trovato && i < tab_settimane.len() {
-        let contenuto: Vec<_> = tab_settimane[i].split("-").collect();
+        let contenuto: Vec<_> = tab_settimane[i].split('-').collect();
         if contenuto[0].parse::<u8>().unwrap() <= giorno
             && giorno <= contenuto[1].parse::<u8>().unwrap()
             && mese == contenuto[2].parse::<u8>().unwrap()
@@ -134,21 +134,21 @@ fn stampo_classe(pos: usize, classi: MutexGuard<'_, Vec<String>>) -> String {
         }
     }
 
-    let orario;
+
 
     if oggi == 6 {
         oggi = 0;
         tabella += "Dato che è domenica, ecco l'orario di lunedì \n";
     }
 
-    if tipo_settimana == "0" || (tipo_settimana == "2" && classi[pos].find("1") != None) {
-        orario = &JSON_A.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]];
+    let orario= if tipo_settimana == "0" || (tipo_settimana == "2" && classi[pos].find('1').is_some()) {
+        &JSON_A.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
     } else {
-        orario = &JSON_B.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]];
-    }
+        &JSON_B.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
+    };
 
     // Controlla se l'orario è vuoto, grazie 3A AFM per esistere
-    if orario[layout[0]].as_array().unwrap().len() > 0 {
+    if !orario[layout[0]].as_array().unwrap().is_empty() {
         for i in 0..6 {
             tabella += &*format!(
                 "Materia: {} - Professore: {} - Aula: {} \n",
@@ -159,7 +159,7 @@ fn stampo_classe(pos: usize, classi: MutexGuard<'_, Vec<String>>) -> String {
         tabella = "Mi dispiace, ma l'orario è vuoto. Prova a cercare un'altra classe".to_string()
     }
 
-    return tabella;
+    tabella
 }
 
 fn json_a_vec(mut array: MutexGuard<Vec<String>>, json: Option<&Map<String, Value>>) {
@@ -173,7 +173,7 @@ fn json_a_vec(mut array: MutexGuard<Vec<String>>, json: Option<&Map<String, Valu
 }
 
 fn leggo_json(path: String) -> Result<Value, Box<dyn Error + Send + Sync>> {
-    return if std::path::Path::exists(path.as_ref()) {
+    if std::path::Path::exists(path.as_ref()) {
         let mut file = File::open(path)?;
 
         let mut content = String::new();
@@ -184,5 +184,5 @@ fn leggo_json(path: String) -> Result<Value, Box<dyn Error + Send + Sync>> {
         Ok(parsed_json)
     } else {
         Err(Box::from("Il json non esiste"))
-    };
+    }
 }
