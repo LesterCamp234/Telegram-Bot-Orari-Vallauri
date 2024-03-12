@@ -102,7 +102,7 @@ fn creatore_bottoni(mese: usize, anno: i32) -> InlineKeyboardMarkup {
     } else if mese == 1 {
         giorni.pop();
         // Per vedere se un anno è bisestile, si fa così:
-        if anno.clone() % 400 == 0 {
+        if anno % 400 == 0 {
             giorni.pop();
         }
     }
@@ -152,11 +152,11 @@ async fn message_handler(
                     } else {
                         let orario =
                             stampo_classe(pos as usize, chrono::Utc::now().date_naive()).await;
-                        let elenco: Vec<_> = orario.split("\n").collect();
+                        let elenco: Vec<_> = orario.split('\n').collect();
 
                         if elenco.len() > 1 {
-                            for i in 0..elenco.len() - 2 {
-                                bot.send_message(msg.chat.id, elenco[i]).await?;
+                            for testo in elenco.iter().take(elenco.len() - 2) {
+                                bot.send_message(msg.chat.id, testo.to_string()).await?;
                             }
                             ris = elenco[elenco.len() - 2].to_string();
                         }
@@ -174,7 +174,7 @@ async fn message_handler(
                 if controllo_classe(classe.clone()).await {
                     let regex = Regex::new(r"(?m)\s+").unwrap();
 
-                    classe = regex.replace_all(&*classe, "").to_string();
+                    classe = regex.replace_all(&classe, "").to_string();
 
                     let testo = format!(
                         "Scegli un giorno per la {} {} di {} {}",
@@ -213,11 +213,11 @@ async fn message_handler(
                             .unwrap()
                             .date_naive();
                         let orario = stampo_classe(pos as usize, data).await;
-                        let elenco: Vec<_> = orario.split("\n").collect();
+                        let elenco: Vec<_> = orario.split('\n').collect();
 
                         if elenco.len() > 1 {
-                            for i in 0..elenco.len() - 2 {
-                                bot.send_message(msg.chat.id, elenco[i]).await?;
+                            for testo in elenco.iter().take(elenco.len() - 2) {
+                                bot.send_message(msg.chat.id, testo.to_string()).await?;
                             }
                             ris = elenco[elenco.len() - 2].to_string();
                         }
@@ -279,7 +279,7 @@ async fn callback_handler(bot: Bot, q: CallbackQuery) -> Result<(), Box<dyn Erro
                     id,
                     format!(
                         "Scegli un giorno per la {} di {} {}",
-                        testo.text().unwrap()[24..30].to_string(),
+                        &testo.text().unwrap()[24..30],
                         MESI[data[0] as usize],
                         data[1]
                     ),
@@ -304,7 +304,7 @@ async fn callback_handler(bot: Bot, q: CallbackQuery) -> Result<(), Box<dyn Erro
                     id,
                     format!(
                         "Scegli un giorno per la {} di {} {}",
-                        testo.text().unwrap()[24..30].to_string(),
+                        &testo.text().unwrap()[24..30],
                         MESI[data[0] as usize],
                         data[1]
                     ),
@@ -322,16 +322,16 @@ async fn callback_handler(bot: Bot, q: CallbackQuery) -> Result<(), Box<dyn Erro
 
                 if pos != -1 {
                     let momento = NaiveDate::parse_from_str(
-                        &*(scelta + "-" + &*data[0].to_string() + "-" + &*data[1].to_string()),
+                        &(scelta + "-" + &*data[0].to_string() + "-" + &*data[1].to_string()),
                         "%d-%m-%Y",
                     )
                     .unwrap();
                     let orario = stampo_classe(pos as usize, momento).await;
-                    let elenco: Vec<_> = orario.split("\n").collect();
+                    let elenco: Vec<_> = orario.split('\n').collect();
 
                     if elenco.len() > 1 {
-                        for i in 0..elenco.len() - 2 {
-                            bot.send_message(chat.id, elenco[i]).await?;
+                        for text in elenco.iter().take(elenco.len() - 2) {
+                            bot.send_message(chat.id, text.to_string()).await?;
                         }
                         ris = elenco[elenco.len() - 2].to_string();
                     }
@@ -365,7 +365,7 @@ async fn mese_e_anno(testo: String) -> Vec<i32> {
 
 async fn controllo_classe(classe: String) -> bool {
     let regex = Regex::new(r"(?m)[1-5][A-Z]\s*[A-Z]{3}$").unwrap();
-    return regex.is_match(&classe);
+    regex.is_match(&classe)
 }
 
 // -1 -> Classe non esiste
@@ -375,7 +375,7 @@ async fn cerco_la_classe(mut classe: String) -> i32 {
     classe = classe.to_uppercase();
     let regex = Regex::new(r"(?m)\s+").unwrap();
 
-    classe = regex.replace_all(&*classe, "").to_string();
+    classe = regex.replace_all(&classe, "").to_string();
 
     match classi.iter().position(|x| x == &*classe) {
         Some(i) => i as i32,
@@ -387,7 +387,7 @@ async fn stampo_classe(pos: usize, data: NaiveDate) -> String {
     let classi = CLASSI.lock().unwrap().to_vec();
     let mut tabella = String::new();
     let tab_settimane = SETTIMANE.lock().unwrap();
-    let giorni = vec![
+    let giorni = [
         "lunedi",
         "martedi",
         "mercoledi",
@@ -395,7 +395,7 @@ async fn stampo_classe(pos: usize, data: NaiveDate) -> String {
         "venerdi",
         "sabato",
     ];
-    let layout = vec!["materie", "professori", "aule"];
+    let layout = ["materie", "professori", "aule"];
     let mut tipo_settimana = String::new();
 
     let mut giorno = data.day();
@@ -415,7 +415,7 @@ async fn stampo_classe(pos: usize, data: NaiveDate) -> String {
     let mut i: usize = 0;
 
     while !trovato && i < tab_settimane.len() {
-        let contenuto: Vec<_> = tab_settimane[i].split("-").collect();
+        let contenuto: Vec<_> = tab_settimane[i].split('-').collect();
         if contenuto[0].parse::<u32>().unwrap() <= giorno
             && giorno <= contenuto[1].parse::<u32>().unwrap()
             && mese == contenuto[2].parse::<u8>().unwrap()
@@ -427,16 +427,15 @@ async fn stampo_classe(pos: usize, data: NaiveDate) -> String {
         }
     }
 
-    let orario;
-
-    if tipo_settimana == "0" || (tipo_settimana == "2" && classi[pos].find("1") != None) {
-        orario = &JSON_A.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]];
-    } else {
-        orario = &JSON_B.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]];
-    }
+    let orario =
+        if tipo_settimana == "0" || (tipo_settimana == "2" && classi[pos].find('1').is_some()) {
+            &JSON_A.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
+        } else {
+            &JSON_B.as_ref().unwrap()[classi[pos].to_string()][giorni[oggi]]
+        };
 
     // Controlla se l'orario è vuoto, grazie 3A AFM per esistere
-    if orario[layout[0]].as_array().unwrap().len() > 0 {
+    if !orario[layout[0]].as_array().unwrap().is_empty() {
         for i in 0..6 {
             tabella += &*format!(
                 "Materia: {} - Professore: {} - Aula: {} \n",
@@ -447,7 +446,7 @@ async fn stampo_classe(pos: usize, data: NaiveDate) -> String {
         tabella = "Mi dispiace, ma l'orario è vuoto. Prova a cercare un'altra classe".to_string()
     }
 
-    return tabella;
+    tabella
 }
 
 fn json_a_vec(mut array: MutexGuard<Vec<String>>, json: Option<&Map<String, Value>>) {
@@ -461,7 +460,7 @@ fn json_a_vec(mut array: MutexGuard<Vec<String>>, json: Option<&Map<String, Valu
 }
 
 fn leggo_json(path: String) -> Result<Value, Box<dyn Error + Send + Sync>> {
-    return if std::path::Path::exists(path.as_ref()) {
+    if std::path::Path::exists(path.as_ref()) {
         let mut file = File::open(path)?;
 
         let mut content = String::new();
@@ -472,5 +471,5 @@ fn leggo_json(path: String) -> Result<Value, Box<dyn Error + Send + Sync>> {
         Ok(parsed_json)
     } else {
         Err(Box::from("Il json non esiste"))
-    };
+    }
 }
