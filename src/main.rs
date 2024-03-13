@@ -9,10 +9,7 @@ use std::sync::{Mutex, MutexGuard};
 use teloxide::{
     payloads::SendMessageSetters,
     prelude::*,
-    types::{
-        InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputMessageContent,
-        InputMessageContentText, Me,
-    },
+    types::{InlineKeyboardButton, InlineKeyboardMarkup, Me},
     utils::command::BotCommands,
 };
 
@@ -76,8 +73,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     let handler = dptree::entry()
                         .branch(Update::filter_message().endpoint(message_handler))
-                        .branch(Update::filter_callback_query().endpoint(callback_handler))
-                        .branch(Update::filter_inline_query().endpoint(inline_query_handler));
+                        .branch(Update::filter_callback_query().endpoint(callback_handler));
 
                     Dispatcher::builder(bot, handler)
                         .enable_ctrlc_handler()
@@ -236,24 +232,6 @@ async fn message_handler(
     Ok(())
 }
 
-//TODO Da sistemare
-async fn inline_query_handler(
-    bot: Bot,
-    q: InlineQuery,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let choose_debian_version = InlineQueryResultArticle::new(
-        "0",
-        "Scegli il giorno del mese",
-        InputMessageContent::Text(InputMessageContentText::new("Giorni:")),
-    )
-    .reply_markup(creatore_bottoni(2, 2));
-
-    bot.answer_inline_query(q.id, vec![choose_debian_version.into()])
-        .await?;
-
-    Ok(())
-}
-
 async fn callback_handler(bot: Bot, q: CallbackQuery) -> Result<(), Box<dyn Error + Send + Sync>> {
     if let Some(scelta) = q.data {
         bot.answer_callback_query(q.id).await?;
@@ -322,7 +300,11 @@ async fn callback_handler(bot: Bot, q: CallbackQuery) -> Result<(), Box<dyn Erro
 
                 if pos != -1 {
                     let momento = NaiveDate::parse_from_str(
-                        &(scelta + "-" + &*data[0].to_string() + "-" + &*data[1].to_string()),
+                        &((scelta.parse::<i32>().unwrap() + 1).to_string()
+                            + "-"
+                            + &*data[0].to_string()
+                            + "-"
+                            + &*data[1].to_string()),
                         "%d-%m-%Y",
                     )
                     .unwrap();
@@ -341,8 +323,6 @@ async fn callback_handler(bot: Bot, q: CallbackQuery) -> Result<(), Box<dyn Erro
 
                 bot.send_message(chat.id, ris).await?;
             }
-        } else if let Some(id) = q.inline_message_id {
-            bot.edit_message_text_inline(id, "A cosa servi???").await?;
         }
     }
 
